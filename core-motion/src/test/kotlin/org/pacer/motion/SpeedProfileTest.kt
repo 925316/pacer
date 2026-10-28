@@ -133,4 +133,46 @@ class SpeedProfileTest {
         assertEquals(90f, still.bearingDeg, 1e-6f)
         assertTrue(cold.satellites in 3..14)
     }
+
+    @Test
+    fun `cadence at running pace is a runner's, not a shuffler's`() {
+        // A real runner turns over about 165-185 times a minute from a jog to a fast run and
+        // lets the stride carry the speed difference. The old table topped out at 1.10 m,
+        // which is 218 SPM at a 4:10/km pace - and the consumer app prints that number.
+        for (speed in listOf(2.8, 3.0, 3.4, 4.0)) {
+            val cadence = speed / StrideLinker.strideForSpeed(speed) * 60.0
+            assertTrue("$speed m/s -> $cadence spm", cadence in 165.0..190.0)
+        }
+    }
+
+    @Test
+    fun `the preset speed is close to what the run averages`() {
+        // One click writes baseSpeedMps and nothing else, so the figure on the Run page has to
+        // describe the run it produces. It did not: fatigue was charged from metre zero at
+        // 0.07/km, and the 3.0 m/s preset averaged 6:56/km - a third slower than it said.
+        val config = MotionConfig.run().copy(pausesPerMinute = 0.0)
+        val totals = (1L..SEEDS).map { seed ->
+            SpeedProfile(config, seed).generate(distanceMeters = 3000.0, dtSec = 1.0).last().tSec
+        }
+        // 3 km at 3.0 m/s is 1000 s; the fade after the first kilometre is the only drift.
+        assertEquals("mean total over $SEEDS seeds", 1000.0, totals.average(), 60.0)
+    }
+
+    @Test
+    fun `a three kilometre jog is not stopped every two minutes`() {
+        // Every stop is in the record the app uploads, and 0.4 stops/minute put seven of them
+        // into a 3 km run - a shape no person produces and no pace total survives. The band is
+        // wide on purpose: what it pins is the order of magnitude, not the draw.
+        val stops = (1L..SEEDS).sumOf { seed ->
+            SpeedProfile(MotionConfig.run(), seed)
+                .generate(distanceMeters = 3000.0, dtSec = 1.0)
+                .count { it.phase == MotionPhase.PAUSE }
+        }
+        assertTrue("mean ${stops.toDouble() / SEEDS} stops per run", stops.toDouble() / SEEDS <= 4.0)
+    }
+
+    private companion object {
+        /** Seeds per average: one seed is a sample of the wobble, not the delivery. */
+        const val SEEDS = 12
+    }
 }

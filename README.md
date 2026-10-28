@@ -5,10 +5,10 @@ An Android app in Kotlin.
 ## Build
 
 ```bash
-gradle :app:assembleDebug
+gradle :core-motion:test :xposed:testDebugUnitTest :app:testDebugUnitTest
+gradle :app:assembleDebug      # ci.yml
+gradle :app:assembleRelease    # release.yml
 ```
-
-Tests: `gradle :core-motion:test :xposed:testDebugUnitTest :app:testDebugUnitTest`.
 
 Requires JDK 17, Android SDK 36, and Gradle 9.6.1 — all installed by the workflows
 under `.github/workflows/`.

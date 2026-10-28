@@ -169,7 +169,11 @@ class SpeedProfile(
 
     private fun fatigued(speedMps: Double, distanceMeters: Double): Double {
         if (prescribedPace) return speedMps
-        val factor = 1.0 - config.fatiguePerKm * (distanceMeters / 1000.0)
+        // The onset matters more than the rate. Fading from the first metre makes the speed
+        // the user typed an upper bound he never runs at; a runner holds his pace for a while
+        // and gives it back later, which is also the shape a coach would expect to see.
+        val fadedKm = (distanceMeters / 1000.0 - FATIGUE_ONSET_KM).coerceAtLeast(0.0)
+        val factor = 1.0 - config.fatiguePerKm * fadedKm
         return (speedMps * factor).coerceAtLeast(speedMps * 0.5)
     }
 
@@ -200,5 +204,16 @@ class SpeedProfile(
         } while (u <= Double.MIN_VALUE)
         return kotlin.math.sqrt(-2.0 * kotlin.math.ln(u)) *
             kotlin.math.cos(2.0 * kotlin.math.PI * v)
+    }
+
+    companion object {
+        /**
+         * Distance a run holds its prescribed speed before fatigue is charged.
+         *
+         * One kilometre because that is the first split a runner judges himself on: the
+         * number he typed should be the number he sees there, and the fade should start
+         * after it rather than from the starting line.
+         */
+        const val FATIGUE_ONSET_KM = 1.0
     }
 }

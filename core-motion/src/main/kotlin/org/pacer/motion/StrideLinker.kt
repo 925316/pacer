@@ -27,12 +27,18 @@ object StrideLinker {
      * human-run preset. Tapering the stride down to 0.42 m at standstill lifts the raw
      * cadence to 58 SPM at 0.5 m/s and 99 at 1.0, so across the running band the floor
      * no longer has to intervene.
+     *
+     * From 2.8 m/s up the stride grows fast enough to hold cadence near 170-190 rather
+     * than letting it run to the [MAX_CADENCE_SPM] ceiling. Cadence is the property a
+     * runner recognises: it barely moves between a jog and a fast run while the stride
+     * does the work. The previous band reached 1.10 m at 4.0 m/s, which is a 218 SPM
+     * shuffle at a 4:10/km pace - a shape no one produces, and one a consumer app prints.
      */
     fun strideForSpeed(speedMps: Double): Double = when {
-        speedMps <= 1.5 -> 0.42 + (speedMps / 1.5) * 0.28 // 0.42 -> 0.70
-        speedMps <= 2.8 -> 0.70 + (speedMps - 1.5) / 1.3 * 0.20 // 0.70 -> 0.90
-        speedMps <= 4.0 -> 0.90 + (speedMps - 2.8) / 1.2 * 0.20 // 0.90 -> 1.10
-        else -> 1.10 + ((speedMps - 4.0) / 1.5 * 0.20).coerceAtMost(0.20) // up to 1.30
+        speedMps <= 1.5 -> 0.42 + (speedMps / 1.5) * 0.28 // 0.42 -> 0.70, 129 SPM
+        speedMps <= 2.8 -> 0.70 + (speedMps - 1.5) / 1.3 * 0.28 // 0.70 -> 0.98, 171 SPM
+        speedMps <= 4.5 -> 0.98 + (speedMps - 2.8) / 1.7 * 0.44 // 0.98 -> 1.42, 190 SPM
+        else -> 1.42 + ((speedMps - 4.5) / 2.0 * 0.25).coerceAtMost(0.25) // up to 1.67
     }
 
     /**

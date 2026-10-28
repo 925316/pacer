@@ -33,7 +33,8 @@ class FrequencyEstimatorTest {
         val (acc, _) = SensorWaveGenerator(seed = 9L).generate(curve, sampleHz = 25)
         val vals = acc.map { it.az }.toDoubleArray()
         val spm = FrequencyEstimator.zeroCrossingsPerMinute(25, vals)
-        // 3 m/s run ~= 220 SPM cap -> ~3.67 Hz. Just ensure non-trivial (not dc, not noise).
+        // A 3 m/s run turns over about 175 SPM, roughly 2.9 Hz. Just ensure non-trivial
+        // (not dc, not noise).
         assertTrue("spm=$spm", spm in 80.0..260.0)
     }
 
