@@ -26,20 +26,18 @@ data class MotionConfig(
      */
     val noiseMeanReversion: Double = 0.1,
     /**
-     * Fractional speed loss per kilometre once fatigue has set in, typical 0.02..0.05.
+     * Fractional speed loss per kilometre, typical 0.02..0.05, charged only after
+     * [SpeedProfile.FATIGUE_ONSET_KM].
      *
-     * Charged from [SpeedProfile.FATIGUE_ONSET_KM], not from the start: a runner holds the
-     * pace he set for the first kilometre and gives it back later. Charging from metre zero
-     * made the number on the Run page a fiction - the 3.0 m/s preset averaged 6:56/km.
+     * Charging from metre zero made the Run page's speed an upper bound the run never
+     * reached: the 3.0 m/s preset averaged 6:56/km.
      */
     val fatiguePerKm: Double = 0.03,
 
     /**
      * Expected pause events per minute of cruising (simulated traffic/rest).
      *
-     * Deliberately low: this is one stop every eight minutes, which is what a person
-     * running a few kilometres actually does. At 0.4 a 3 km jog was interrupted seven
-     * times, and every one of those stops is visible in the record the app uploads.
+     * 0.4 interrupted a 3 km jog seven times, and every stop is in the uploaded record.
      */
     val pausesPerMinute: Double = 0.12,
     /** Pause length range in seconds (typical 8..20). */

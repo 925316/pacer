@@ -28,11 +28,9 @@ object StrideLinker {
      * cadence to 58 SPM at 0.5 m/s and 99 at 1.0, so across the running band the floor
      * no longer has to intervene.
      *
-     * From 2.8 m/s up the stride grows fast enough to hold cadence near 170-190 rather
-     * than letting it run to the [MAX_CADENCE_SPM] ceiling. Cadence is the property a
-     * runner recognises: it barely moves between a jog and a fast run while the stride
-     * does the work. The previous band reached 1.10 m at 4.0 m/s, which is a 218 SPM
-     * shuffle at a 4:10/km pace - a shape no one produces, and one a consumer app prints.
+     * From 2.8 m/s up the stride grows fast enough to hold cadence near 170-190 instead of
+     * running it to the [MAX_CADENCE_SPM] ceiling: the old 1.10 m at 4.0 m/s implied 218 SPM
+     * at a 4:10/km pace, and a consumer app prints that number.
      */
     fun strideForSpeed(speedMps: Double): Double = when {
         speedMps <= 1.5 -> 0.42 + (speedMps / 1.5) * 0.28 // 0.42 -> 0.70, 129 SPM

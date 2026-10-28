@@ -136,9 +136,8 @@ class SpeedProfileTest {
 
     @Test
     fun `cadence at running pace is a runner's, not a shuffler's`() {
-        // A real runner turns over about 165-185 times a minute from a jog to a fast run and
-        // lets the stride carry the speed difference. The old table topped out at 1.10 m,
-        // which is 218 SPM at a 4:10/km pace - and the consumer app prints that number.
+        // Runners turn over 165-185 SPM from a jog to a fast run and let the stride carry the
+        // speed; the old table reached 218 SPM at 4.0 m/s, a pace nobody shuffles at.
         for (speed in listOf(2.8, 3.0, 3.4, 4.0)) {
             val cadence = speed / StrideLinker.strideForSpeed(speed) * 60.0
             assertTrue("$speed m/s -> $cadence spm", cadence in 165.0..190.0)
@@ -147,9 +146,8 @@ class SpeedProfileTest {
 
     @Test
     fun `the preset speed is close to what the run averages`() {
-        // One click writes baseSpeedMps and nothing else, so the figure on the Run page has to
-        // describe the run it produces. It did not: fatigue was charged from metre zero at
-        // 0.07/km, and the 3.0 m/s preset averaged 6:56/km - a third slower than it said.
+        // One click writes baseSpeedMps and nothing else, so this is the figure the Run page
+        // promises. It used to come out a third slower: 6:56/km for the 3.0 m/s preset.
         val config = MotionConfig.run().copy(pausesPerMinute = 0.0)
         val totals = (1L..SEEDS).map { seed ->
             SpeedProfile(config, seed).generate(distanceMeters = 3000.0, dtSec = 1.0).last().tSec
@@ -160,13 +158,19 @@ class SpeedProfileTest {
 
     @Test
     fun `a three kilometre jog is not stopped every two minutes`() {
-        // Every stop is in the record the app uploads, and 0.4 stops/minute put seven of them
-        // into a 3 km run - a shape no person produces and no pace total survives. The band is
-        // wide on purpose: what it pins is the order of magnitude, not the draw.
-        val stops = (1L..SEEDS).sumOf { seed ->
-            SpeedProfile(MotionConfig.run(), seed)
+        // Counts ENTRIES into PAUSE, not samples spent there: at 1 Hz one 8-20 s stop is 8-20
+        // samples, so counting samples overstates the stops by an order of magnitude.
+        var stops = 0
+        for (seed in 1L..SEEDS) {
+            val samples = SpeedProfile(MotionConfig.run(), seed)
                 .generate(distanceMeters = 3000.0, dtSec = 1.0)
-                .count { it.phase == MotionPhase.PAUSE }
+            for (i in 1 until samples.size) {
+                if (samples[i].phase == MotionPhase.PAUSE &&
+                    samples[i - 1].phase != MotionPhase.PAUSE
+                ) {
+                    stops++
+                }
+            }
         }
         assertTrue("mean ${stops.toDouble() / SEEDS} stops per run", stops.toDouble() / SEEDS <= 4.0)
     }
